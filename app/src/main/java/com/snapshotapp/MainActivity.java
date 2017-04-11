@@ -2,13 +2,13 @@ package com.snapshotapp;
 
 import android.content.ContentValues;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
+    private final String TAG = getClass().getSimpleName();
     int TAKE_PHOTO_CODE = 0;
     public static int count =0;
     Button button;
@@ -36,6 +37,8 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
     public Camera.PictureCallback mCall = new Camera.PictureCallback() {
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
+            Log.e(TAG, "Running onPictureTaken for photo #" + count);
+
             Uri uriTarget = getContentResolver().insert//(Media.EXTERNAL_CONTENT_URI, image);
                     (MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
 
@@ -55,8 +58,12 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             }
             //mCamera.startPreview();
 
+            /*
             bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
             iv_image.setImageBitmap(bmp);
+
+            */
+
         }
     };
 
@@ -66,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         setContentView(R.layout.activity_main);
         Util.verifyStoragePermissions(this);
         button = (Button) findViewById(R.id.photo_button);
+
         int index = getFrontCameraId();
         if (index == -1) {
             Toast.makeText(getApplicationContext(), "No front camera", Toast.LENGTH_LONG).show();
@@ -135,20 +143,26 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         parameters = mCamera.getParameters();
         mCamera.setParameters(parameters);
         mCamera.startPreview();
-        mCamera.takePicture(null, null, mCall);
+
     }
 
     public void runPhotos() {
         count = 0;
-
+        Log.e(TAG, "Running photo sequence...");
         final Runnable runnable = new Runnable() {
             @Override
             public void run() {
                 count++;
+                mCamera.startPreview();
                 if (count< 10){
-                    handler.postDelayed(this,500);
+                    Log.e(TAG, "Taking photo #" + count +"...");
+                    mCamera.takePicture(null,null,mCall);
+                    handler.postDelayed(this,5000);
+
+                } else {
+                    Log.e(TAG, "Ending photo sequence...");
+                    button.setEnabled(true);
                 }
-                button.setEnabled(true);
             }
         };
         handler.post(runnable);
