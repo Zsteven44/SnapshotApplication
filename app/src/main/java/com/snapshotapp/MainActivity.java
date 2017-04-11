@@ -154,10 +154,10 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             public void run() {
                 count++;
                 mCamera.startPreview();
-                if (count< 10){
+                if (count<= 10){
                     Log.e(TAG, "Taking photo #" + count +"...");
                     mCamera.takePicture(null,null,mCall);
-                    handler.postDelayed(this,5000);
+                    handler.postDelayed(this,2500);
 
                 } else {
                     Log.e(TAG, "Ending photo sequence...");
