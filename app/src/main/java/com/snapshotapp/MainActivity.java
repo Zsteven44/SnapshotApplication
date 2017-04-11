@@ -49,21 +49,11 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
                 imageFileOS.flush();
                 imageFileOS.close();
 
-                Toast.makeText(MainActivity.this,
-                        "Image saved: " + uriTarget.toString(), Toast.LENGTH_LONG).show();
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //mCamera.startPreview();
-
-            /*
-            bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-            iv_image.setImageBitmap(bmp);
-
-            */
-
         }
     };
 
