@@ -13,7 +13,7 @@ stated in the manifest and required by user on start-up.  Should
 be able to cleanly download and run as is.
 
 
-Issues:
+Further Considerations:
 
 #1. Learning how to programatically utilize the device
 Camera.  Android developer docs clearly explained how to do so, as
