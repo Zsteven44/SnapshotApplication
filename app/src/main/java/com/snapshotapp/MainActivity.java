@@ -6,10 +6,13 @@ import android.graphics.BitmapFactory;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -21,21 +24,48 @@ import java.io.OutputStream;
 
 public class MainActivity extends AppCompatActivity implements SurfaceHolder.Callback {
     int TAKE_PHOTO_CODE = 0;
-    public static int count = 0;
+    public static int count =0;
+    Button button;
     ImageView iv_image;
     SurfaceView sv;
     SurfaceHolder sHolder;
     Camera mCamera;
     Camera.Parameters parameters;
     Bitmap bmp;
+    Handler handler = new Handler();
+    public Camera.PictureCallback mCall = new Camera.PictureCallback() {
+        @Override
+        public void onPictureTaken(byte[] data, Camera camera) {
+            Uri uriTarget = getContentResolver().insert//(Media.EXTERNAL_CONTENT_URI, image);
+                    (MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
 
+            OutputStream imageFileOS;
+            try {
+                imageFileOS = getContentResolver().openOutputStream(uriTarget);
+                imageFileOS.write(data);
+                imageFileOS.flush();
+                imageFileOS.close();
+
+                Toast.makeText(MainActivity.this,
+                        "Image saved: " + uriTarget.toString(), Toast.LENGTH_LONG).show();
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            //mCamera.startPreview();
+
+            bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+            iv_image.setImageBitmap(bmp);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Util.verifyStoragePermissions(this);
-
+        button = (Button) findViewById(R.id.photo_button);
         int index = getFrontCameraId();
         if (index == -1) {
             Toast.makeText(getApplicationContext(), "No front camera", Toast.LENGTH_LONG).show();
@@ -46,6 +76,15 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
             sHolder.addCallback(this);
             sHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         }
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                runPhotos();
+                button.setEnabled(false);
+            }
+        });
+
 
     }
 
@@ -96,38 +135,25 @@ public class MainActivity extends AppCompatActivity implements SurfaceHolder.Cal
         parameters = mCamera.getParameters();
         mCamera.setParameters(parameters);
         mCamera.startPreview();
-
-        Camera.PictureCallback mCall = new Camera.PictureCallback()
-        {
-            @Override
-            public void onPictureTaken(byte[] data, Camera camera)
-            {
-                Uri uriTarget = getContentResolver().insert//(Media.EXTERNAL_CONTENT_URI, image);
-                        (MediaStore.Images.Media.EXTERNAL_CONTENT_URI, new ContentValues());
-
-                OutputStream imageFileOS;
-                try {
-                    imageFileOS = getContentResolver().openOutputStream(uriTarget);
-                    imageFileOS.write(data);
-                    imageFileOS.flush();
-                    imageFileOS.close();
-
-                    Toast.makeText(MainActivity.this,
-                            "Image saved: " + uriTarget.toString(), Toast.LENGTH_LONG).show();
-                }
-                catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }catch (IOException e) {
-                    e.printStackTrace();
-                }
-                //mCamera.startPreview();
-
-                bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-                iv_image.setImageBitmap(bmp);
-            }
-        };
-
         mCamera.takePicture(null, null, mCall);
     }
+
+    public void runPhotos() {
+        count = 0;
+
+        final Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                count++;
+                if (count< 10){
+                    handler.postDelayed(this,500);
+                }
+                button.setEnabled(true);
+            }
+        };
+        handler.post(runnable);
+
+    }
+
 }
 
